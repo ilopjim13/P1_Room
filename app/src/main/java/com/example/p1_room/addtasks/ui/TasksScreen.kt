@@ -48,6 +48,7 @@ import com.example.p1_room.addtasks.ui.model.TaskModel
 fun TasksScreen(tasksViewModel: TasksViewModel) {
 
     val showDialog: Boolean by tasksViewModel.showDialog.observeAsState(false)
+    val showUpdate: Boolean by tasksViewModel.showUpdate.observeAsState(false)
     val myTaskText: String by tasksViewModel.myTaskText.observeAsState("")
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val uiState by produceState<TaskUiState>(
@@ -81,6 +82,15 @@ fun TasksScreen(tasksViewModel: TasksViewModel) {
                     onTaskAdded = { tasksViewModel.onTaskCreated() },
                     onTaskTextChanged = { tasksViewModel.onTaskTextChanged(it) }
                 )
+                tasksViewModel.taskUpdate.value?.task?.let {
+                    UpdateTaskDialog(
+                        show = showUpdate,
+                        myTaskText = myTaskText,
+                        onDismiss = { tasksViewModel.showUpdateClose() },
+                        onTaskUpdate = { tasksViewModel.onTaskUpdate(tasksViewModel.taskUpdate.value) },
+                        onTaskTextChanged = { tasksViewModel.onTaskTextChanged(it) }
+                    )
+                }
                 FabDialog(
                     Modifier.align(Alignment.BottomEnd),
                     onNewTask = { tasksViewModel.onShowDialogClick() })
@@ -148,13 +158,57 @@ fun AddTasksDialog(
 }
 
 @Composable
+fun UpdateTaskDialog(
+    show: Boolean,
+    myTaskText: String,
+    onDismiss: () -> Unit,
+    onTaskUpdate: () -> Unit,
+    onTaskTextChanged: (String) -> Unit
+) {
+    if (show) {
+        Dialog(onDismissRequest = { onDismiss() }) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Actualiza tu tarea",
+                    fontSize = 18.sp,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                TextField(
+                    value = myTaskText,
+                    onValueChange = { onTaskTextChanged(it) },
+                    singleLine = true,
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                Button(
+                    onClick = {
+                        onTaskUpdate()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Actualizar tarea")
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun TasksList(tasks: List<TaskModel>, tasksViewModel: TasksViewModel) {
     LazyColumn {
         items(tasks, key = { it.id }) { task ->
             ItemTask(
                 task,
                 onTaskRemove = { tasksViewModel.onItemRemove(it) },
-                onTaskCheckChanged = { tasksViewModel.onCheckBoxSelected(it) }
+                onTaskCheckChanged = { tasksViewModel.onCheckBoxSelected(it) },
+                showUpdate = {tasksViewModel.showUpdate(it)}
             )
         }
     }
@@ -164,6 +218,7 @@ fun TasksList(tasks: List<TaskModel>, tasksViewModel: TasksViewModel) {
 fun ItemTask (
     taskModel: TaskModel,
     onTaskRemove: (TaskModel) -> Unit,
+    showUpdate: (TaskModel) -> Unit,
     onTaskCheckChanged: (TaskModel) -> Unit
 ) {
     Card(
@@ -177,9 +232,7 @@ fun ItemTask (
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .pointerInput(Unit) {
-                detectTapGestures(onLongPress = {
-                    onTaskRemove(taskModel)
-                })
+                detectTapGestures(onLongPress = { onTaskRemove(taskModel) }, onTap = { showUpdate(taskModel) })
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {

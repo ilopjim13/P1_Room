@@ -33,12 +33,18 @@ class TasksViewModel(
     private val _showDialog = MutableLiveData<Boolean>()
     val showDialog: LiveData<Boolean> = _showDialog
 
+    private val _showUpdate = MutableLiveData<Boolean>()
+    val showUpdate: LiveData<Boolean> = _showUpdate
+
+    private val _taskUpdate = MutableLiveData<TaskModel?>()
+    val taskUpdate: LiveData<TaskModel?> = _taskUpdate
+
     private val _myTaskText = MutableLiveData<String>()
     val myTaskText: LiveData<String> = _myTaskText
 
     //Utilizamos mutableStateListOf porque se lleva mejor con LazyColumn a la hora
     //de refrescar la información en la vista...
-    //private val _tasks = mutableStateListOf<TaskModel>()
+    private val _tasks = mutableStateListOf<TaskModel>()
     //val tasks: List<TaskModel> = _tasks
 
     fun onDialogClose() {
@@ -89,7 +95,31 @@ class TasksViewModel(
         //El truco está en que no se modifica solo la propiedad selected de tasks[index],
         //sino que se vuelve a reasignar para que la vista vea que se ha actualizado un item y se recomponga.
         //_tasks[index] = _tasks[index].let { it.copy(selected = !it.selected) }
-        taskModel.selected = true
+        taskModel.selected = !taskModel.selected
+    }
+
+    fun showUpdate(taskModel: TaskModel) {
+        viewModelScope.launch {
+            _showUpdate.value = true
+            _myTaskText.value = taskModel.task
+        }
+    }
+
+    fun showUpdateClose() {
+        viewModelScope.launch {
+            _showUpdate.value = false
+            _myTaskText.value = ""
+        }
+    }
+
+    fun onTaskUpdate(taskModel: TaskModel?) {
+        viewModelScope.launch {
+            if (taskModel != null) {
+                updateTaskUseCase(taskModel)
+            }
+        }
+        _showUpdate.value = false
+        _myTaskText.value = ""
     }
 
 }
