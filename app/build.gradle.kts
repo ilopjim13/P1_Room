@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")
-    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -66,8 +65,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     testImplementation(libs.junit)
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    //Room
+    implementation("androidx.room:room-runtime:2.6.1" ) // Asegúrate de usar la versión adecuada
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
     //LiveData
     implementation(libs.androidx.runtime.livedata)
     androidTestImplementation(libs.androidx.junit)
