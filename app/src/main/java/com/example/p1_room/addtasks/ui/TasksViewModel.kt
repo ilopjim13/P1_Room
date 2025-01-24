@@ -1,7 +1,5 @@
 package com.example.p1_room.addtasks.ui
 
-import android.util.Log
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -83,7 +81,6 @@ class TasksViewModel(
         _showUpdate.value = true
         _myTaskText.value = taskModel.task
         _taskUpdate.value = taskModel
-        Log.d("TaskViewModel", "textoooo: $taskModel")
     }
 
     fun showUpdateClose() {
@@ -93,10 +90,6 @@ class TasksViewModel(
 
     fun onTaskUpdate(taskModel: TaskModel) {
         val updatedTask = taskModel.copy(task = _myTaskText.value.toString())
-
-        Log.d("TaskViewModel", "Updating task to: $updatedTask")
-        Log.d("TaskViewModel", "Updating task to: $taskModel")
-
         viewModelScope.launch {
             updateTaskUseCase(updatedTask)
         }

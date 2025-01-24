@@ -1,6 +1,5 @@
 package com.example.p1_room.addtasks.ui
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -252,7 +251,6 @@ fun ItemTask (
                 checked = taskModel.selected.value,
                 onCheckedChange = { onTaskCheckChanged(taskModel) }
             )
-            Log.d("TaskViewModel", "en lista: $taskModel")
         }
     }
 }
