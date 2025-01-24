@@ -1,5 +1,6 @@
 package com.example.p1_room.addtasks.data
 
+import androidx.compose.runtime.mutableStateOf
 import com.example.p1_room.addtasks.ui.model.TaskModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -26,9 +27,9 @@ class TaskRepository(private val taskDao: TaskDao) {
 }
 
 fun TaskModel.toData(): TaskEntity {
-    return TaskEntity(this.id, this.task, this.selected)
+    return TaskEntity(this.id, this.task, this.selected.value)
 }
 
 fun TaskEntity.toModel(): TaskModel {
-    return TaskModel(this.id, this.task, this.selected)
+    return TaskModel(this.id, this.task, mutableStateOf( this.selected))
 }

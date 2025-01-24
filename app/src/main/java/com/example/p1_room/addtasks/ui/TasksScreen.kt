@@ -1,5 +1,6 @@
 package com.example.p1_room.addtasks.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -45,11 +45,12 @@ import com.example.p1_room.addtasks.ui.model.TaskModel
  * Función principal básica
  */
 @Composable
-fun TasksScreen(tasksViewModel: TasksViewModel) {
+fun TasksScreen(tasksViewModel: TasksViewModel, modifier: Modifier = Modifier) {
 
     val showDialog: Boolean by tasksViewModel.showDialog.observeAsState(false)
     val showUpdate: Boolean by tasksViewModel.showUpdate.observeAsState(false)
     val myTaskText: String by tasksViewModel.myTaskText.observeAsState("")
+    val taskUpdate: TaskModel by tasksViewModel.taskUpdate.observeAsState(initial = TaskModel(task = ""))
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val uiState by produceState<TaskUiState>(
         initialValue = TaskUiState.Loading,
@@ -74,7 +75,7 @@ fun TasksScreen(tasksViewModel: TasksViewModel) {
             }
         }
         is TaskUiState.Success -> {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = modifier.fillMaxSize()) {
                 AddTasksDialog(
                     show = showDialog,
                     myTaskText = myTaskText,
@@ -82,15 +83,13 @@ fun TasksScreen(tasksViewModel: TasksViewModel) {
                     onTaskAdded = { tasksViewModel.onTaskCreated() },
                     onTaskTextChanged = { tasksViewModel.onTaskTextChanged(it) }
                 )
-                tasksViewModel.taskUpdate.value?.task?.let {
-                    UpdateTaskDialog(
-                        show = showUpdate,
-                        myTaskText = myTaskText,
-                        onDismiss = { tasksViewModel.showUpdateClose() },
-                        onTaskUpdate = { tasksViewModel.onTaskUpdate(tasksViewModel.taskUpdate.value) },
-                        onTaskTextChanged = { tasksViewModel.onTaskTextChanged(it) }
-                    )
-                }
+                UpdateTaskDialog(
+                    show = showUpdate,
+                    myTaskText = myTaskText,
+                    onDismiss = { tasksViewModel.showUpdateClose() },
+                    onTaskUpdate = { tasksViewModel.onTaskUpdate(taskUpdate) },
+                    onTaskTextChanged = { tasksViewModel.onTaskTextChanged(it) }
+                )
                 FabDialog(
                     Modifier.align(Alignment.BottomEnd),
                     onNewTask = { tasksViewModel.onShowDialogClick() })
@@ -232,7 +231,9 @@ fun ItemTask (
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .pointerInput(Unit) {
-                detectTapGestures(onLongPress = { onTaskRemove(taskModel) }, onTap = { showUpdate(taskModel) })
+                detectTapGestures(
+                    onLongPress = { onTaskRemove(taskModel) },
+                    onDoubleTap = { showUpdate(taskModel) })
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
@@ -248,9 +249,10 @@ fun ItemTask (
                     .weight(1f)
             )
             Checkbox(
-                checked = taskModel.selected,
+                checked = taskModel.selected.value,
                 onCheckedChange = { onTaskCheckChanged(taskModel) }
             )
+            Log.d("TaskViewModel", "en lista: $taskModel")
         }
     }
 }
